@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GARJNA 2K25</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/viewerjs/dist/viewer.min.css">
+    <style>
+        .viewer-title {
+            color: #fff !important;
+            font-weight: bold;
+        }
+        .viewer-backdrop {
+            backdrop-filter: blur(8px);
+            background-color: rgba(0, 0, 0, 0.8) !important;
+        }
+        .viewer-download {
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            width: 35px !important;
+            height: 35px !important;
+            border-radius: 50% !important;
+            background-color: #333 !important;
+            color: white !important;
+            font-size: 20px !important;
+            margin-left: 5px !important;
+            cursor: pointer !important;
+            transition: background-color 0.3s !important;
+            margin-bottom: -50px !important;
+        }
+        .viewer-download::before {
+            content: "⬇️";
+            font-size: 20px;
+            margin: 0;
+        }
+        .flash-error {
+            color: red;
+        }
+        .flash-success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+          <p class="{% if category == 'error' %}flash-error{% else %}flash-success{% endif %}" style="text-align:center;">
+        {{ message }}
+      </p>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <p style="color: '{% if category == 'error' %}red{% else %}green{% endif %}'; text-align:center;">
+        {{ message }}
+      </p>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<h1 class="main-title">GARJNA 2K25</h1>
+
+<div class="top-controls">
+    <form method="get" action="/">
+        <input type="text" name="search" placeholder="Search..." value="{{ search_query }}">
+        <select name="file_type">
+            <option value="all" {% if file_type == 'all' %}selected{% endif %}>All</option>
+            <option value="images" {% if file_type == 'images' %}selected{% endif %}>Images</option>
+            <option value="videos" {% if file_type == 'videos' %}selected{% endif %}>Videos</option>
+        </select>
+        <button type="submit">Apply</button>
+    </form>
+    <button onclick="toggleDarkMode()" class="dark-mode-btn">🌙 Dark Mode</button>
+</div>
+
+<h2 class="section-title">Media from Google Drive:</h2>
+<div class="media-container" id="google-gallery">
+    {% for item in media %}
+        <div class="media-item">
+            <h4>{{ item.name }}</h4>
+            {% if 'image' in item.mime_type %}
+                <img src="{{ item.full_url }}" alt="{{ item.name }}" />
+            {% else %}
+                <iframe src="{{ item.full_url }}" frameborder="0" allowfullscreen></iframe>
+            {% endif %}
+            <a href="{{ item.full_url }}" class="download-btn" download="{{ item.name }}">Download</a>
+        </div>
+    {% endfor %}
+</div>
+
+{% if next_page_token %}
+    <div class="pagination">
+        <a href="/?search={{ search_query }}&file_type={{ file_type }}&page_token={{ next_page_token }}" class="next-page-btn">Next Page →</a>
+    </div>
+{% endif %}
+
+<h2 class="section-title">Your Uploaded Photos:</h2>
+<form class="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="photos" multiple required>
+    <button type="submit">Upload</button>
+</form>
+
+<div class="media-container uploaded-photos" id="uploaded-gallery">
+    {% for photo in photos %}
+        <div class="media-item card">
+            <img src="{{ url_for('static', filename='uploads/' + photo) }}" alt="{{ photo }}">
+            <div class="card-actions">
+                <a href="{{ url_for('static', filename='uploads/' + photo) }}" class="download-btn" download="{{ photo }}">⬇️ Download</a>
+                {% if photo in user_uploaded %}
+                    <a href="/delete/{{ photo }}" class="download-btn delete-btn">🗑️ Delete</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="logout-container">
+    <a href="/logout" class="download-btn">Logout</a>
+</div>
+
+<script type="module" src="{{ url_for('static', filename='firebase.js') }}"></script>
+<script src="{{ url_for('static', filename='theme.js') }}"></script>
+<script src="https://unpkg.com/viewerjs/dist/viewer.min.js"></script>
+
+<script>
+    const uploadedGallery = document.getElementById('uploaded-gallery');
+    const googleGallery = document.getElementById('google-gallery');
+
+    const viewer1 = new Viewer(uploadedGallery, {
+        title: true,
+        toolbar: {
+            zoomIn: 1, zoomOut: 1, oneToOne: 1, reset: 1, prev: 1, next: 1,
+            rotateLeft: 1, rotateRight: 1, flipHorizontal: 1, flipVertical: 1,
+            play: 1,
+            download: () => {
+                const link = document.createElement('a');
+                link.href = viewer1.image.src;
+                link.download = viewer1.image.alt;
+                link.click();
+            }
+        },
+        navbar: true, movable: true, zoomable: true, rotatable: true,
+        scalable: true, transition: true, fullscreen: true, keyboard: true,
+        toggleOnDblclick: true, zoomOnWheel: true, backdrop: true
+    });
+
+    const viewer2 = new Viewer(googleGallery, {
+        title: true,
+        toolbar: {
+            zoomIn: 1, zoomOut: 1, oneToOne: 1, reset: 1, prev: 1, next: 1,
+            rotateLeft: 1, rotateRight: 1, flipHorizontal: 1, flipVertical: 1,
+            play: 1,
+            download: () => {
+                const link = document.createElement('a');
+                link.href = viewer2.image.src;
+                link.download = viewer2.image.alt;
+                link.click();
+            }
+        },
+        navbar: true, movable: true, zoomable: true, rotatable: true,
+        scalable: true, transition: true, fullscreen: true, keyboard: true,
+        toggleOnDblclick: true, zoomOnWheel: true, backdrop: true
+    });
+
+    function customizeDownloadButtons(viewer) {
+        viewer.viewer.addEventListener('shown', () => {
+            const buttons = document.querySelectorAll('.viewer-toolbar > li');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('data-action') === 'download') {
+                    btn.classList.add('viewer-download');
+                    console.log('Download button styled with emoji');
+                }
+            });
+        });
+    }
+
+    customizeDownloadButtons(viewer1);
+    customizeDownloadButtons(viewer2);
+</script>
+</body>
+</html>

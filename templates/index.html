@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GARJNA 2K25</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- External Libraries -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/viewerjs/dist/viewer.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+  <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='viewer.css') }}">
+
+  <style>
+    /* 🔄 Viewer.js Custom Styling */
+    .viewer-title {
+      color: #fff !important;
+      font-weight: bold;
+    }
+
+    .viewer-backdrop {
+      backdrop-filter: blur(8px);
+      background-color: rgba(0, 0, 0, 0.8) !important;
+    }
+
+    .viewer-download::before {
+      content: "⬇️ ";
+      font-size: 18px;
+      margin-right: 3px;
+    }
+
+    /* 🔽 Responsive Drawer Button */
+    .drawer-toggle {
+      display: none;
+      background: #ff4081;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .top-controls {
+        display: none;
+        flex-direction: column;
+        padding: 10px;
+        background-color: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+      }
+      .drawer-toggle {
+        display: block;
+      }
+    }
+
+    /* 🔄 Spinner Loader */
+    #loading-spinner {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      top: 0;
+      left: 0;
+      z-index: 999;
+      background-color: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s;
+    }
+
+    .spinner {
+      width: 70px;
+      height: 70px;
+      border: 8px solid #fff;
+      border-top: 8px solid #ff4081;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 🔃 Loading Spinner -->
+<div id="loading-spinner">
+  <div class="spinner"></div>
+</div>
+
+<h1 class="main-title" data-aos="zoom-in">GARJNA 2K25</h1>
+
+<!-- ☰ Drawer Button -->
+<button class="drawer-toggle" onclick="toggleDrawer()">☰ Filters</button>
+
+<!-- 🔍 Filters -->
+<div class="top-controls">
+  <form method="get" action="/">
+    <input type="text" name="search" placeholder="Search..." value="{{ search_query }}">
+    <select name="file_type">
+      <option value="all" {% if file_type == 'all' %}selected{% endif %}>All</option>
+      <option value="images" {% if file_type == 'images' %}selected{% endif %}>Images</option>
+      <option value="videos" {% if file_type == 'videos' %}selected{% endif %}>Videos</option>
+    </select>
+    <button type="submit">Apply</button>
+  </form>
+  <button onclick="toggleDarkMode()" class="dark-mode-btn" id="darkBtn">🌙 Dark Mode</button>
+</div>
+
+<!-- Google Drive Media -->
+<h2 class="section-title" data-aos="fade-up">Media from Google Drive:</h2>
+<div class="media-container" id="google-gallery">
+  {% for item in media %}
+    <div class="media-item" data-aos="fade-up">
+      <h4>{{ item.name }}</h4>
+      {% if 'image' in item.mime_type %}
+        <div class="media-itemm {% if request.args.get('search') %}search-result{% endif %}">
+          <img src="{{ item.full_url }}" alt="{{ item.name }}" />
+        </div>
+      {% else %}
+        <iframe src="{{ item.full_url }}" frameborder="0" allowfullscreen></iframe>
+      {% endif %}
+      <a href="{{ item.full_url }}" class="download-btn" download="{{ item.name }}">⬇️ Download</a>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+<div class="pagination">
+  {% if prev_page_token %}
+    <a href="/?search={{ search_query }}&file_type={{ file_type }}&nav=back" class="prev-page-btn">← Back Page</a>
+  {% endif %}
+  {% if next_page_token %}
+    <a href="/?search={{ search_query }}&file_type={{ file_type }}&page_token={{ next_page_token }}&nav=next" class="next-page-btn">Next Page →</a>
+  {% endif %}
+</div>
+
+<!-- Upload via Dropzone -->
+<h2 class="section-title" data-aos="zoom-in">Upload Your Photos:</h2>
+<form action="/upload" class="dropzone" id="my-dropzone" method="post" enctype="multipart/form-data">
+  {{ csrf_token() if csrf_token }}
+</form>
+
+<!-- Uploaded Media Gallery -->
+<div class="media-container uploaded-photos" id="uploaded-gallery">
+  {% for photo in photos %}
+    <div class="media-item card" data-aos="fade-up">
+      <img src="{{ url_for('static', filename='uploads/' + photo) }}" alt="{{ photo }}">
+      <div class="card-actions">
+        <a href="{{ url_for('static', filename='uploads/' + photo) }}" class="download-btn" download="{{ photo }}">⬇️ Download</a>
+        {% if photo in user_uploaded %}
+          <a href="/delete/{{ photo }}" class="download-btn delete-btn">🗑️ Delete</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Logout -->
+<div class="logout-container">
+  <a href="/logout" class="download-btn">Logout</a>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/viewerjs/dist/viewer.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+<script type="module" src="{{ url_for('static', filename='firebase.js') }}"></script>
+<script src="{{ url_for('static', filename='theme.js') }}"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<script>
+  AOS.init();
+
+  window.addEventListener("load", () => {
+    document.getElementById("loading-spinner").style.display = "none";
+  });
+
+  function toggleDrawer() {
+    const drawer = document.querySelector(".top-controls");
+    drawer.style.display = drawer.style.display === "flex" ? "none" : "flex";
+  }
+
+  // Dark Mode Toggle
+  function toggleDarkMode() {
+    const body = document.body;
+    body.classList.toggle("dark-mode");
+    localStorage.setItem("theme", body.classList.contains("dark-mode") ? "dark" : "light");
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
+    }
+  });
+
+  // Dropzone Config
+  Dropzone.options.myDropzone = {
+    paramName: "photos",
+    maxFilesize: 10,
+    acceptedFiles: "image/*",
+    init: function () {
+      this.on("success", function () {
+        location.reload();
+      });
+    }
+  };
+
+  // Viewer.js Initializations
+  const viewer1 = new Viewer(document.getElementById('uploaded-gallery'), {
+    title: true,
+    backdrop: true,
+    toolbar: {
+      zoomIn: 1, zoomOut: 1, oneToOne: 1, reset: 1, prev: 1, next: 1,
+      rotateLeft: 1, rotateRight: 1, flipHorizontal: 1, flipVertical: 1,
+      play: 1,
+      download: () => {
+        const link = document.createElement('a');
+        link.href = viewer1.image.src;
+        link.download = viewer1.image.alt;
+        link.click();
+      }
+    }
+  });
+
+  const viewer2 = new Viewer(document.getElementById('google-gallery'), {
+    title: true,
+    backdrop: true,
+    toolbar: {
+      zoomIn: 1, zoomOut: 1, oneToOne: 1, reset: 1, prev: 1, next: 1,
+      rotateLeft: 1, rotateRight: 1, flipHorizontal: 1, flipVertical: 1,
+      play: 1,
+      download: () => {
+        const link = document.createElement('a');
+        link.href = viewer2.image.src;
+        link.download = viewer2.image.alt;
+        link.click();
+      }
+    }
+  });
+
+  function addDownloadEmoji(viewer) {
+    viewer.viewer.addEventListener('shown', () => {
+      const buttons = document.querySelectorAll('.viewer-toolbar > li');
+      buttons.forEach(btn => {
+        if (btn.getAttribute('data-action') === 'download') {
+          btn.classList.add('viewer-download');
+        }
+      });
+    });
+  }
+
+  addDownloadEmoji(viewer1);
+  addDownloadEmoji(viewer2);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+    "huda": {
+        "email": "jagdishhuda399@gmail.com",
+        "password": "scrypt:32768:8:1$Tf6HYeXNFQW7vVjb$60fc525666596e988e612c708dff986d3980abc9b35d549257da2e825b7a96315500eabcc5bc11cb0a2ce61ca98b2c139a3aefe2090821f4a7fa9bfc386d78ce"
+    },
+    "Bhomu": {
+        "email": "jagdishhuda399@gmail.com",
+        "password": "scrypt:32768:8:1$zI4w6rBwHpRg1OBI$83c8dbcf135577594c85212af52bee71953cba509644a6a5270a32d3bcf9f3a838e9f038c5e70e949a109e60dd3b559d3eb7d7fac0a919941df5e2c0042b7ee0"
+    },
+    "Huda": {
+        "email": "jagdishhuda9799@gmail.com",
+        "password": "scrypt:32768:8:1$tHqTHuyuR85KkgYo$dda2dedf159bf0d350dc1e5ec256e6c85f27201aefb3191694b65e66d7aeac841f3e521ae314ee8c2c9b15f43a0a49d40def8ed9f06be9f41ef715e46abe3fe0"
+    }
+}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Admin Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #222;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        img {
+            width: 80px;
+            height: auto;
+            border-radius: 5px;
+            margin: 3px;
+        }
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+            padding: 7px 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-delete:hover {
+            background-color: #c0392b;
+        }
+        a.logout {
+            float: right;
+            text-decoration: none;
+            background: #555;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        a.logout:hover {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+    <h1>Admin Control Panel</h1>
+    <p>Logged in as: <strong>{{ session['username'] }}</strong></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Uploaded Photos</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for username, info in users.items() %}
+                <tr>
+                    <td>{{ username }}</td>
+                    <td>{{ info.email }}</td>
+                    <td>
+                        {% if user_photos.get(username) %}
+                            {% for photo in user_photos[username] %}
+                                <img src="{{ url_for('static', filename='uploads/' + photo) }}" alt="{{ photo }}" />
+                            {% endfor %}
+                        {% else %}
+                            कोई फोटो नहीं
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if username != session['username'] %}
+                            <form action="{{ url_for('admin_delete_user', username_to_delete=username) }}" method="GET" onsubmit="return confirm('क्या आप वाकई इस यूज़र को डिलीट करना चाहते हैं?');">
+                                <button type="submit" class="btn-delete">यूज़र डिलीट करें</button>
+                            </form>
+                        {% else %}
+                            (आप खुद को डिलीट नहीं कर सकते)
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <p style="margin-top: 20px;">
+        <a href="{{ url_for('indexx') }}">होम पेज पर जाएं</a>
+    </p>
+</body>
+</html>

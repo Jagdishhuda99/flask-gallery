@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='lstyle.css') }}">
+</head>
+<body class="auth-container">
+    <div class="auth-card">
+        <h2>Sign Up</h2>
+
+        {% with messages = get_flashed_messages(with_categories=True) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              {% if category == 'error' %}
+                <p style="color: red;">
+                  {{ message }}
+                </p>
+              {% else %}
+                <p style="color: lightgreen;">
+                  {{ message }}
+                </p>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="post">
+            <div class="input-group">
+                <input type="text" name="username" id="username" placeholder=" " required>
+                <label for="username">Username</label>
+            </div>
+            <div class="input-group">
+                <input type="email" name="email" id="email" placeholder=" " required>
+                <label for="email">Email</label>
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" id="password" placeholder=" " required>
+                <label for="password">Password</label>
+                <span class="password-toggle" onclick="togglePassword()">👁️</span>
+            </div>
+            <div class="input-group">
+                <input type="password" name="confirm_password" id="confirm_password" placeholder=" " required>
+                <label for="confirm_password">Confirm Password</label>
+                <span class="password-toggle" onclick="toggleConfirmPassword()">👁️</span>
+            </div>
+
+            <button type="submit">Sign Up</button>
+        </form>
+
+        <a href="/login">Already have an account? Login</a>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const password = document.getElementById("password");
+            password.type = password.type === "password" ? "text" : "password";
+        }
+        function toggleConfirmPassword() {
+            const confirmPassword = document.getElementById("confirm_password");
+            confirmPassword.type = confirmPassword.type === "password" ? "text" : "password";
+        }
+    </script>
+</body>
+</html>

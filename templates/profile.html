@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8" />
+    <title>{{ username }} की प्रोफ़ाइल</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            color: #333;
+        }
+        .profile-info {
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 0 6px rgba(0,0,0,0.1);
+        }
+        .photos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .photos img {
+            width: 150px;
+            border-radius: 6px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: #4caf50;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ username }} की प्रोफ़ाइल</h1>
+    <div class="profile-info">
+        <p><strong>ईमेल:</strong> {{ email }}</p>
+    </div>
+
+    <h2>अपलोड की गई तस्वीरें</h2>
+    {% if photos %}
+        <div class="photos">
+            {% for photo in photos %}
+                <img src="{{ url_for('static', filename='uploads/' + photo) }}" alt="{{ photo }}" />
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>आपने अभी तक कोई फोटो अपलोड नहीं की है।</p>
+    {% endif %}
+
+    <a href="{{ url_for('indexx') }}">होम पेज पर वापस जाएं</a>
+</body>
+</html>
