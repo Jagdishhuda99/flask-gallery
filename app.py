@@ -1,5 +1,6 @@
 import os
 import json
+import base64
 import requests
 from flask import Flask, flash, render_template, request, redirect, url_for, session
 from google.oauth2 import service_account
@@ -15,11 +16,15 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
-SERVICE_ACCOUNT_FILE = 'credentials.json'
 FOLDER_ID = '19YX8cVSLefa-44D14wH0vcoQAAgs0OA0'
 
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+# ✅ Load credentials from environment variable (Base64 JSON string)
+encoded_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if not encoded_credentials:
+    raise ValueError("GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable not set")
+
+credentials_info = json.loads(base64.b64decode(encoded_credentials).decode("utf-8"))
+credentials = service_account.Credentials.from_service_account_info(credentials_info, scopes=SCOPES)
 service = build('drive', 'v3', credentials=credentials)
 
 USER_DB_FILE = 'users.json'
@@ -196,7 +201,6 @@ def indexx():
                            prev_page_token=prev_page_token,
                            photos=all_photos, user_uploaded=user_uploaded)
 
-
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'username' not in session:
@@ -204,7 +208,6 @@ def upload_file():
 
     username = session['username']
 
-    # Handle both traditional <form enctype="multipart/form-data" name="photos"> and Dropzone.js ("file")
     uploaded_files = request.files.getlist('file')
     if not uploaded_files or uploaded_files == [None]:
         uploaded_files = request.files.getlist('photos')
@@ -220,9 +223,7 @@ def upload_file():
 
     save_user_photos()
 
-    # For Dropzone: return JSON for client-side updates
     return {'status': 'success', 'files': saved_files}
-
 
 @app.route('/delete/<filename>')
 def delete_file(filename):
